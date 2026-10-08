@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b12">
+<title>TannnSpoof</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{font-family:Inter,system-ui,sans-serif;background:#080b12;color:#eef2ff}
+*{box-sizing:border-box}body{margin:0;background:#080b12}main{max-width:1050px;margin:auto;padding:28px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+.brand{font-size:28px;font-weight:800}.badge{font-size:12px;padding:7px 10px;border:1px solid #263044;border-radius:999px;color:#9fb0ca}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#101522;border:1px solid #202b40;border-radius:18px;padding:20px;box-shadow:0 12px 35px #0004}
+h2{font-size:17px;margin:0 0 14px}label{display:block;color:#9fb0ca;font-size:12px;margin:12px 0 6px}
+input,select,button,textarea{width:100%;border-radius:11px;border:1px solid #2a3750;background:#0b101b;color:#eef2ff;padding:11px 12px;font:inherit}
+button{cursor:pointer;font-weight:700;background:#5b6cff;border-color:#6c7cff}.secondary{background:#151d2c}.danger{background:#2a1318;border-color:#52202a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.status{padding:12px;border-radius:12px;background:#0b101b;color:#9fb0ca;margin-top:12px;min-height:44px}
+#list{display:grid;gap:9px;margin-top:12px}.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #263044;border-radius:12px}
+.item code{font-size:12px;color:#9ee6b5}.small{font-size:12px;color:#8190a9;line-height:1.5}
+.preview{height:280px;display:grid;place-items:center;border-radius:15px;background:radial-gradient(circle at 50% 35%,#273353,#0b101b 62%);overflow:hidden}
+.rig{width:90px;height:160px;position:relative;opacity:.9}.head{width:46px;height:46px;border-radius:50%;background:#b8c3d6;margin:auto}.body{width:54px;height:68px;background:#69758d;margin:6px auto;border-radius:14px}.limb{position:absolute;width:16px;height:72px;background:#8290a8;border-radius:10px;top:57px}.l{left:7px;transform:rotate(12deg)}.r{right:7px;transform:rotate(-12deg)}.leg{position:absolute;width:18px;height:70px;background:#5e6b82;border-radius:10px;bottom:0}.ll{left:23px}.rr{right:23px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}main{padding:18px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="brand">TannnSpoof</div><div class="small">Animation ID workspace untuk Roblox Studio</div></div><div class="badge">SAFE WORKFLOW</div></header>
+<div class="grid">
+<section class="card">
+<h2>Animation ID</h2>
+<label>ID / URL Roblox</label><input id="id" placeholder="1234567890 atau rbxassetid://1234567890">
+<div class="row"><button onclick="add()">Tambahkan</button><button class="secondary" onclick="clearAll()">Bersihkan</button></div>
+<div id="status" class="status">Masukkan Animation ID untuk membuat daftar.</div>
+<div id="list"></div>
+</section>
+<section class="card">
+<h2>Preview</h2>
+<div class="preview"><div class="rig"><div class="head"></div><div class="body"></div><div class="limb l"></div><div class="limb r"></div><div class="leg ll"></div><div class="leg rr"></div></div></div>
+<p class="small">Preview gerakan Roblox yang benar-benar memutar AnimationTrack harus dijalankan di Roblox Studio. Gunakan plugin TannnSpoof yang ada di folder <b>studio-plugin</b> untuk preview langsung pada rig yang dipilih.</p>
+<button class="secondary" onclick="copyPlugin()">Salin instruksi plugin</button>
+</section>
+<section class="card">
+<h2>Animation ID Mapper</h2>
+<label>ID lama</label><input id="old" placeholder="ID yang ingin diganti">
+<label>ID baru</label><input id="new" placeholder="ID pengganti">
+<button onclick="mapId()">Tambahkan mapping</button>
+<div id="maps" class="small" style="margin-top:12px"></div>
+</section>
+<section class="card">
+<h2>Export Luau</h2>
+<p class="small">Menghasilkan tabel mapping dan helper untuk mengganti AnimationId di project milikmu. Ini tidak membuat ID palsu di server Roblox.</p>
+<button onclick="downloadLua()">Download TannnSpoofMapping.lua</button>
+<div id="exportStatus" class="status">Belum ada export.</div>
+</section>
+</div>
+</main>
+<script>
+let ids=JSON.parse(localStorage.getItem("ts_ids")||"[]"), maps=JSON.parse(localStorage.getItem("ts_maps")||"[]");
+function norm(v){let m=String(v).match(/(?:rbxassetid:\/\/)?(\d{3,})/);return m?m[1]:null}
+function render(){list.innerHTML=ids.map((x,i)=>`<div class="item"><span>Animation ${i+1}<br><code>${x}</code></span><button class="danger" style="width:auto" onclick="ids.splice(${i},1);save()">×</button></div>`).join("");mapsEl=maps.map(x=>`<div>${x.old} → ${x.new}</div>`).join("");document.getElementById("maps").innerHTML=mapsEl||"Belum ada mapping."; }
+function save(){localStorage.setItem("ts_ids",JSON.stringify(ids));localStorage.setItem("ts_maps",JSON.stringify(maps));render()}
+function add(){let x=norm(document.getElementById("id").value);if(!x){status.textContent="ID tidak valid.";return}if(!ids.includes(x))ids.push(x);save();status.innerHTML=`Tersimpan: <code>${x}</code>. Untuk preview nyata, pilih rig di Studio lalu gunakan plugin.`}
+function mapId(){let a=norm(old.value),b=norm(document.getElementById("new").value);if(!a||!b){exportStatus.textContent="Mapping tidak valid.";return}maps.push({old:a,new:b});save();exportStatus.textContent="Mapping ditambahkan."}
+function clearAll(){ids=[];maps=[];save();status.textContent="Daftar dikosongkan."}
+function downloadLua(){let t="-- TannnSpoof Mapping\\nlocal Mapping = {\\n";for(const x of maps)t+=`  [${x.old}] = ${x.new},\\n`;t+="}\\n\\nreturn Mapping\\n";let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.download="TannnSpoofMapping.lua";a.click();exportStatus.textContent="File Luau dibuat."}
+function copyPlugin(){navigator.clipboard?.writeText("Install the TannnSpoof Studio plugin from the studio-plugin folder, select a rig, paste an Animation ID, then Preview.");status.textContent="Instruksi disalin."}
+render();
+</script>
+</body>
+</html>
